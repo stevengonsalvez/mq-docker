@@ -1,12 +1,18 @@
 #!/bin/bash
 # -*- mode: sh -*-
-# © Copyright IBM Corporation 2015.
+# © Copyright IBM Corporation 2015, 2016
 #
-# All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
-# which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
-
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 set -e
 
@@ -22,8 +28,6 @@ config()
 	echo "----------------------------------------"
 	dspmqver
 	echo "----------------------------------------"
-	mqconfig || (echo -e "\nERROR: mqconfig returned a non-zero return code" 1>&2 ; exit 1)
-	echo "----------------------------------------"
 
 	QMGR_EXISTS=`dspmq | grep ${MQ_QMGR_NAME} > /dev/null ; echo $?`
 	if [ ${QMGR_EXISTS} -ne 0 ]; then
@@ -31,7 +35,10 @@ config()
 		amqmfsck /var/mqm
 		echo "----------------------------------------"
 		crtmqm -q ${MQ_QMGR_NAME} || true
-		strmqm -e CMDLEVEL=${MQ_QMGR_CMDLEVEL} || true
+		if [ ${MQ_QMGR_CMDLEVEL+x} ]; then
+			# Enables the specified command level, then stops the queue manager
+			strmqm -e CMDLEVEL=${MQ_QMGR_CMDLEVEL} || true
+		fi
 		echo "----------------------------------------"
 	fi
 	strmqm ${MQ_QMGR_NAME}
